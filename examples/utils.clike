@@ -1,0 +1,5 @@
+// Utility functions for import example
+
+int add(int a, int b) {
+    return a + b;
+}

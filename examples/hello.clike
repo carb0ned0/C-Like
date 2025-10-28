@@ -1,0 +1,5 @@
+// A simple "Hello, CLIKE!" program
+
+int main() {
+    print("Hello, CLIKE!");
+}

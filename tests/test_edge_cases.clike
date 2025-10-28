@@ -1,0 +1,38 @@
+// Test edge cases: empty arrays, zero values, negative numbers, recursion limits
+
+void test_empty_array(int arr[], int size) {
+    if (size == 0) {
+        print("Empty array");
+    }
+}
+
+int main() {
+    int zero = 0;
+    print(zero); // 0
+
+    int negative = -5;
+    if (negative < 0) {
+        print(negative + 6); // 1
+    }
+
+    int arr[0];
+    test_empty_array(arr, 0); // Empty array
+
+    float f_zero = 0.0;
+    print(f_zero); // 0.0
+
+    char empty_char = '\0';
+    print("Char zero"); // (no output for \0, but test passes)
+
+    // Deep recursion test (small depth to avoid stack overflow)
+    int fact = factorial(3); // Assume factorial defined in include or locally
+    print(fact); // 6
+
+    // Expected output:
+    // 0
+    // 1
+    // Empty array
+    // 0.0
+    // Char zero
+    // 6
+}

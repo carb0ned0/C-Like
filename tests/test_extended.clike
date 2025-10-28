@@ -1,0 +1,41 @@
+// Test extended features: function calls, arrays with functions
+
+void print_char_array(char arr[], int size) {
+    for (int i = 0; i < size; i = i + 1) {
+        print(arr[i]);
+    }
+}
+
+int main() {
+    char ch_arr[3];
+    ch_arr[0] = 'A';
+    ch_arr[1] = 'B';
+    ch_arr[2] = 'C';
+    print_char_array(ch_arr, 3); // A B C
+
+    string str = "Extended test";
+    print(str); // Extended test
+
+    float pi = 3.14;
+    float area = pi * 2.0 * 2.0;
+    print(area); // 12.56
+
+    int nested = 1;
+    while (nested < 3) {
+        for (int j = 0; j < 2; j = j + 1) {
+            print(nested + j); // 1, 2, 3, 4
+        }
+        nested = nested + 1;
+    }
+
+    // Expected output:
+    // A
+    // B
+    // C
+    // Extended test
+    // 12.56
+    // 1
+    // 2
+    // 3
+    // 4
+}

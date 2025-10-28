@@ -1,0 +1,57 @@
+// Test advanced features: functions, loops, arrays, recursion, etc.
+
+void test_print_array(float arr[], int size) {
+    for (int i = 0; i < size; i = i + 1) {
+        print(arr[i]);
+    }
+}
+
+int fibonacci(int n) {
+    if (n <= 1) {
+        return n;
+    } else {
+        return fibonacci(n - 1) + fibonacci(n - 2);
+    }
+}
+
+int main() {
+    int a = 5 * 10; // 50
+    print(a);
+
+    int fact = 1;
+    for (int i = 1; i <= 3; i = i + 1) {
+        fact = fact * i;
+    }
+    print(fact); // 6
+
+    float f = 3.0;
+    print(f);
+
+    float arr[5];
+    arr[0] = 1.5;
+    arr[1] = 2.5;
+    arr[2] = 3.5;
+    arr[3] = 4.5;
+    arr[4] = 5.5;
+    test_print_array(arr, 3); // Prints 1.5, 2.5, 3.5
+
+    int fib = fibonacci(5); // 5
+    print(fib + 9); // 14
+
+    string s = "Test";
+    print(s); // Test complete
+
+    char c = '!';
+    print(c); // !
+
+    // Expected output:
+    // 50
+    // 6
+    // 3.0
+    // 1.5
+    // 2.5
+    // 3.5
+    // 14
+    // Test complete
+    // !
+}

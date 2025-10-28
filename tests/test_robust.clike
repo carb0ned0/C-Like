@@ -1,0 +1,66 @@
+// Test robustness: conditionals, nested structures, comparisons
+
+int main() {
+    float x = 4.0;
+    print(x); // 4.0
+
+    int y = 8;
+    print(y); // 8
+
+    if (x > 3.5 && y == 8) {
+        print(2.0); // 2.0
+    }
+
+    int z = 1;
+    if (z != 0) {
+        print(z); // 1
+    }
+
+    for (int i = 5; i > 0; i = i - 1) {
+        if (i == 5) {
+            print(i); // 5
+        } else if (i == 4) {
+            print(i + 2); // 6
+        }
+    }
+
+    bool condition = true;
+    if (condition || false) {
+        print("Complex condition true");
+    }
+
+    char ch = 'X';
+    while (ch == 'X') {
+        print(ch); // X
+        ch = 'Y';
+    }
+
+    int num = -5;
+    if (num < 0) {
+        print("Negative");
+    } else if (num == 0) {
+        print("Zero");
+    } else {
+        print("Positive");
+    }
+
+    if (true) {
+        if (false) {
+            print("Nested if false");
+        } else {
+            print("Nested if true");
+        }
+    }
+
+    // Expected output:
+    // 4.0
+    // 8
+    // 2.0
+    // 1
+    // 5
+    // 6
+    // Complex condition true
+    // X
+    // Negative
+    // Nested if true
+}

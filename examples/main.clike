@@ -1,0 +1,8 @@
+// Program demonstrating import with #include
+
+#include "utils.clike"
+
+int main() {
+    int result = add(5, 3);
+    print(result); // Outputs 8
+}
