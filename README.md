@@ -7,20 +7,20 @@ CLIKE is a simple interpreter for a C-like programming language, implemented ent
 * **Semantic Analysis**: Manages symbol tables to check for type and scope errors.
 * **Interpretation (Interpreter)**: Executes the AST using a call stack to manage function calls and runtime execution.
 
-The language supports a familiar C-like syntax, including data types (`int`, `float`, `char`, `string`), `arrays`, conditional statements (`if`/`else`), loops (`for`/`while`), functions, and an `#include` directive for basic modularity.
+The language supports a familiar C-like syntax, including data types (`int`, `float`, `char`, `string`, `void`), variables with in-line initialization, statically-sized 1D arrays, arithmetic/relational/logical operators, control flow (`if-else`, `while`, `for`), functions with recursion and array parameters, built-in `print`, `#include` for modularity, and single-line comments.
 
 ---
 
 ## Language Features and Syntax
 
-CLIKE supports a core subset of C-like syntax, designed for simplicity and educational purposes. All programs must be saved with a `.clike` extension and contain an `int main()` function as the entry point.
+CLIKE supports a core subset of C-like syntax, designed for simplicity and educational purposes. All programs must be saved with a `.clike` extension and contain an `int main()` function as the entry point. No global variables are allowed; all declarations must be inside functions or the main block.
 
 ### 1. **Program Structure**
 
 A program consists of optional `#include` directives, function declarations, and a mandatory `int main()` function.
 
-* `#include` Directive: Allows importing functions from other `.clike` files. The path is specified as a string literal.
-* Main Function: The entry point for execution is `int main() { ... }`.
+* `#include` Directive: Imports function declarations from other `.clike` files (only functions are parsed; main or loose statements are ignored).
+* Main Function: The entry point is `int main() { ... }`.
 
 ```c
 // main.clike
@@ -34,288 +34,210 @@ int main() {
 
 ### 2. **Data Types and Declarations**
 
-Variables must be declared with their type before use. CLIKE supports:
+Variables must be declared with their type before use. Declarations must be at the top of blocks (e.g., in `main` or functions). Multiple declarations per line are supported, with optional initialization.
 
-* `int`: Integers (e.g., `10`, `0`, `-5`).
+* `int`: Signed integers (e.g., `10`, `0`, `-5`).
 * `float`: Floating-point numbers (e.g., `3.14`, `0.0`).
-* `char`: Single characters (e.g., `'A'`).
-* `string`: String literals (e.g., `"Hello"`).
-* `void`: Used as a return type for functions that do not return a value.
-
-**Variable Declaration and Initialization**: Variables can be initialized at declaration.
+* `char`: Single characters (e.g., `'A'`, initialized to `'\0'`).
+* `string`: Strings (e.g., `"Hello"`, initialized to `""`).
+* `void`: For functions with no return value.
 
 ```c
+// Variable Declarations
+int i;
+float f;
+char c;
+string s;
+
+// Declaration with Initialization
 int x = 10;
 float pi = 3.14;
-char initial = 'J';
-string greeting = "Hello, CLIKE!";
+string a = "hello";
+char b = 'z';
+
+// Multiple declarations
+int y = 5, z, w = 100;
 ```
 
-**Arrays**: Arrays are declared with a fixed size.
+**Arrays**: One-dimensional, fixed-size arrays (size must be integer literal). Initialized to defaults (e.g., 0 for int).
 
 ```c
-int nums[3];
-nums[0] = 10;
-nums[1] = 20;
-nums[2] = 30;
+int my_array[10];
+float f_array[5];
 
-char letters[2];
+my_array[0] = 100;
+int val = my_array[0];
+print(my_array[1]);
 ```
 
 ### 3. **Operators and Expressions**
 
-CLIKE supports standard arithmetic, comparison, and logical operators.
-
-* Arithmetic: `+`, `-`, `*`, `/` (division is float-based).
-* Comparison: `==,` `!=`, `<`, `<=,` `>`, `>=`.
+* Arithmetic: `+`, `-`, `*`, `/` (always float division, e.g., `5 / 2 = 2.5`).
+* Relational: `==`, `!=`, `<`, `>`, `<=`, `>=`.
 * Logical: `&&` (AND), `||` (OR).
 * Assignment: `=`.
+* Unary: `+`, `-` (e.g., `int x = -5;`).
+
+Operator precedence follows C rules (e.g., `*` before `+`).
 
 ```c
-int sum = 10 + 5;           // 15
-float result = (sum * 2.0) / 3.0;
-
-if (sum > 10 && result <= 10.0) {
-    print("Condition met");
-}
+int sum = 10 + 5 * 2; // 20
+float div = 5 / 2;    // 2.5
 ```
 
 ### 4. Control Flow
 
-**If-Else Statements**: Used for conditional logic. The `else` block is optional.
+**If-Else**: Optional `else`.
 
 ```c
-if (x > 0) {
-    print("Positive");
-} else if (x == 0) {
-    print("Zero");
+if (x < 10) {
+    print("x is less than 10");
 } else {
-    print("Negative");
+    print("x is 10 or more");
 }
 ```
 
-**While Loops**: Executes a block of code as long as a condition is true.
+**While Loops**:
 
 ```c
 int i = 0;
-while (i < 3) {
+while (i < 5) {
     print(i);
     i = i + 1;
 }
-// Outputs: 0, 1, 2
 ```
 
-**For Loops**: A `for` loop combines initialization, a condition, and a post-loop operation. The initialization part can include a new variable declaration.
+**For Loops**: C-style `(init; condition; post)`, init can declare variables, post can be comma-separated assignments.
 
 ```c
-int sum = 0;
-for (int i = 0; i < 3; i = i + 1) {
-    sum = sum + arr[i];
+for (int i = 0; i < 5; i = i + 1) {
+    print(i);
 }
 ```
 
 ### 5. Functions
 
-Functions must be declared with a return type, name, and parameters. Arrays can be passed as parameters.
-
-* **Return Type**: `int`, `float`, `char`, `string`, or `void`.
-* **Parameters**: Can be scalar types or arrays (e.g., `int arr[]`).
-* **Return Statement**: `return` is used to send a value back from a function.
+Functions support typed parameters (including arrays as `type arr[]`), recursion, and `return` (optional for `void`).
 
 ```c
-// Function definition
-int factorial(int n) {
-    if (n <= 1) {
-        return 1;
-    } else {
-        return n * factorial(n - 1); // Recursion is supported
-    }
+int add(int a, int b) {
+    return a + b;
 }
 
-// Function with no return value
-void print_array(int arr[], int size) {
+void print_array(float arr[], int size) {
     for (int i = 0; i < size; i = i + 1) {
         print(arr[i]);
     }
 }
 
-// Function call
 int main() {
-    int f = factorial(5);
-    print(f); // Outputs 120
+    float vals[3] = {1.0, 2.0, 3.0}; // Note: Initialization lists not supported; assign individually
+    print_array(vals, 3);
 }
 ```
 
 ### 6. Built-in Functions
 
-`print(expression)`: The primary way to output values to the console. It can print any data type.
+* `print(expression)`: Outputs any type to console.
 
-### 7. Comments
+### 7. Preprocessing
 
-Single-line comments are supported using `//`.
+* `#include "file.clike"`: Imports functions from another file.
 
-```c
-// This is a single-line comment.
-int x = 1; // This comment is at the end of a line.
-```
+### 8. Comments
+
+Single-line: `// comment`.
 
 ---
 
 ## Usage and Examples
 
-### How to Run the Interpreter
+### Running the Interpreter
 
-The CLIKE interpreter is run from the command line using Python. You must provide a .clike source file as an argument. The interpreter will then lex, parse, analyze, and execute the code.
-
-**Command:**
+Run via command line:
 
 ```bash
-python archieve/c-like.py [options] <inputfile>
+python src/clike.py [options] <inputfile.clike>
 ```
 
-**Options**: The interpreter provides several flags for debugging:
+Options:
 
-* `--scope`: Print detailed scope and symbol table information during semantic analysis.
-* `--stack`: Print the call stack during runtime for debugging function calls.
-* `--debug`: Print verbose, step-by-step logs from the lexer, parser, and interpreter.
+* `--scope`: Print symbol tables during semantic analysis.
+* `--stack`: Print call stack during execution (useful for recursion).
+* `--debug`: Verbose logs for lexer, parser, interpreter.
 
-**Examples**:
+### Examples
 
-The `examples/` directory contains several programs that demonstrate the language's features.
+See `examples/` for basic programs and `tests/` for advanced/edge cases.
 
-1. **Hello, CLIKE!**
+1. **Hello World** (`examples/hello.clike`):
 
-    This is a basic "Hello, World!" program that demonstrates the print function and string literals.
+   ```c
+   int main() {
+       print("Hello, CLIKE!");
+   }
+   ```
 
-    **File**: `examples/hello.clike`
+   Output: `Hello, CLIKE!`
 
-    ```c
-    // A simple "Hello, CLIKE!" program
+2. **Factorial Recursion** (`examples/factorial.clike`):
 
-    int main() {
-        print("Hello, CLIKE!");
-    }
-    ```
+   ```c
+   int factorial(int n) {
+       if (n <= 1) {
+           return 1;
+       } else {
+           return n * factorial(n - 1);
+       }
+   }
 
-    **To Run**:
+   int main() {
+       print(factorial(5)); // 120
+   }
+   ```
 
-    ```bash
-    python archieve/c-like.py examples/hello.clike
-    ```
+3. **Arrays and Loops** (`examples/array.clike`):
 
-    **Output**:
+   ```c
+   int main() {
+       int arr[3];
+       arr[0] = 10; arr[1] = 20; arr[2] = 30;
+       int sum = 0;
+       for (int i = 0; i < 3; i = i + 1) {
+           sum = sum + arr[i];
+       }
+       print(sum); // 60
+   }
+   ```
 
-    ```bash
-    Hello, CLIKE!
-    ```
+4. **Include Example** (`examples/main.clike` with `utils.clike`):
 
-2. **Factorial (Recursion)**
+   `utils.clike`:
 
-    This example shows how to define and call a recursive function to compute a factorial.
+   ```c
+   int add(int a, int b) {
+       return a + b;
+   }
+   ```
 
-    **File**: `examples/factorial.clike`
+   `main.clike`:
 
-    ```c
-    // A program to compute factorial using recursion
+   ```c
+   #include "utils.clike"
 
-    int factorial(int n) {
-        if (n <= 1) {
-            return 1;
-        } else {
-            return n * factorial(n - 1);
-        }
-    }
+   int main() {
+       print(add(5, 3)); // 8
+   }
+   ```
 
-    int main() {
-        int result = factorial(5);
-        print(result);
-    }
-    ```
+For limitations and unsupported features, see `docs/Syntax.md`.
 
-    **To Run**:
+### Test Results
 
-    ```bash
-    python archieve/c-like.py examples/factorial.clike
-    ```
+The following shows the terminal output from running the test suite, confirming that all tests pass successfully:
 
-    **Output**:
-
-    ```bash
-    120
-    ```
-
-3. **Arrays and Loops**
-
-    This program demonstrates declaring an array, assigning values, and using a for loop to iterate over it.
-
-    **File**: `examples/array.clike`
-
-    ```c
-    // A program demonstrating arrays and for loops
-
-    int main() {
-        int arr[3];
-        arr[0] = 10;
-        arr[1] = 20;
-        arr[2] = 30;
-
-        int sum = 0;
-        for (int i = 0; i < 3; i = i + 1) {
-            sum = sum + arr[i];
-        }
-        print(sum); // Outputs 60
-    }
-    ```
-
-    **To Run**:
-
-    ```bash
-    python archieve/c-like.py examples/array.clike
-    ```
-
-    **Output**:
-
-    ```bash
-    60
-    ```
-
-4. Imports with #include
-
-    This example shows how to use the #include directive to import functions from another file (utils.clike) into the main program (main.clike).
-
-    File: `examples/utils.clike`
-
-    ```c
-    // Utility functions for import example
-
-    int add(int a, int b) {
-        return a + b;
-    }
-    ```
-
-    File: `examples/main.clike`
-
-    ```c
-    # Program demonstrating import with #include
-
-    #include "utils.clike"
-
-    int main() {
-        int result = add(5, 3);
-        print(result); // Outputs 8
-    }
-    ```
-
-    To Run:
-
-    ```bash
-    python archieve/c-like.py examples/main.clike
-    ```
-
-    Output:
-
-    ```bash
-    8
-    ```
+![Result](/tests/results.png)
 
 ---
+
+MIT License (see LICENSE). Copyright (c) 2025 Manas.

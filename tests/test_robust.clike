@@ -1,6 +1,9 @@
 // Test robustness: conditionals, nested structures, comparisons
 
 int main() {
+    // Declarations at top
+    int condition = 1;
+
     float x = 4.0;
     print(x); // 4.0
 
@@ -24,8 +27,7 @@ int main() {
         }
     }
 
-    bool condition = true;
-    if (condition || false) {
+    if (condition || 0) {
         print("Complex condition true");
     }
 
@@ -44,8 +46,8 @@ int main() {
         print("Positive");
     }
 
-    if (true) {
-        if (false) {
+    if (1) {
+        if (0) {
             print("Nested if false");
         } else {
             print("Nested if true");

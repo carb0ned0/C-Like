@@ -38,7 +38,7 @@ int main() {
     int fib = fibonacci(5); // 5
     print(fib + 9); // 14
 
-    string s = "Test";
+    string s = "Test complete";
     print(s); // Test complete
 
     char c = '!';

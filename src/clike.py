@@ -542,7 +542,7 @@ class Parser:
             with open(file_path, 'r') as f:
                 included_text = f.read()
             
-            # Create a new lexer and parser for the included file
+            # Create a new lexer and a new Parser for the included file
             included_lexer = Lexer(included_text)
             included_parser = Parser(included_lexer, base_dir=self.base_dir)
             included_parser.included_files = self.included_files  # Share the included_files set
@@ -744,6 +744,14 @@ class Parser:
             false_branch = self.statement()
         return If(condition, true_branch, false_branch)
 
+    def while_statement(self):
+        self.eat(TokenType.WHILE)
+        self.eat(TokenType.LPAREN)
+        condition = self.expr()
+        self.eat(TokenType.RPAREN)
+        body = self.statement()
+        return While(condition, body)
+
     def statement(self):
         if _SHOULD_LOG_DEBUG:
             print(f"Parser: Parsing statement, current token: {self.current_token}")
@@ -944,10 +952,20 @@ class Symbol:
         self.type = type
         self.scope_level = 0
 
+    def __str__(self):
+        return f'<{self.__class__.__name__}(name={self.name}, type={self.type})>'
+
+    __repr__ = __str__
+
 
 class VarSymbol(Symbol):
     def __init__(self, name, type):
         super().__init__(name, type)
+
+    def __str__(self):
+        return f'<{self.__class__.__name__}(name={self.name}, type={self.type.name if self.type else "None"})>'
+
+    __repr__ = __str__
 
 
 class FunctionSymbol(Symbol):
@@ -955,10 +973,20 @@ class FunctionSymbol(Symbol):
         super().__init__(name, type)
         self.params = []  # list of VarSymbol
 
+    def __str__(self):
+        return f'<{self.__class__.__name__}(name={self.name}, type={self.type}, params={[str(p) for p in self.params]})>'
+
+    __repr__ = __str__
+
 
 class BuiltinTypeSymbol(Symbol):
     def __init__(self, name):
         super().__init__(name)
+
+    def __str__(self):
+        return f'<{self.__class__.__name__}(name={self.name})>'
+
+    __repr__ = __str__
 
 
 class ScopedSymbolTable:
@@ -973,7 +1001,7 @@ class ScopedSymbolTable:
         self.insert(BuiltinTypeSymbol('char'))
         self.insert(BuiltinTypeSymbol('string'))
         self.insert(BuiltinTypeSymbol('void'))
-        self.insert(BuiltinTypeSymbol('float'))  # Add this line
+        self.insert(BuiltinTypeSymbol('float'))
 
     def insert(self, symbol):
         self._symbols[symbol.name] = symbol
@@ -990,6 +1018,16 @@ class ScopedSymbolTable:
         if self.enclosing_scope is not None:
             return self.enclosing_scope.lookup(name)
 
+    def log(self):
+        if not _SHOULD_LOG_SCOPE:
+            return
+        heading = f' {self.scope_name.upper()} SCOPE '
+        lines = [heading, '=' * len(heading)]
+        for k, v in self._symbols.items():
+            lines.append(f'{k}: {str(v)}')
+        lines.append(f'Enclosing scope: {self.enclosing_scope.scope_name if self.enclosing_scope else "None"}')
+        print('\n'.join(lines))
+
 
 class SemanticAnalyzer(NodeVisitor):
     def __init__(self):
@@ -1004,6 +1042,8 @@ class SemanticAnalyzer(NodeVisitor):
             self.visit(func)
 
         self.visit(node.main_block)
+
+        global_scope.log()  # Log the global scope after full analysis
 
         self.current_scope = None
 
@@ -1025,6 +1065,8 @@ class SemanticAnalyzer(NodeVisitor):
             func_symbol.params.append(var_symbol)
 
         self.visit(node.body)
+
+        func_scope.log()  # Log the function scope after analysis
 
         self.current_scope = self.current_scope.enclosing_scope
 
@@ -1147,6 +1189,14 @@ class CallStack:
     def peek(self):
         return self._records[-1]
 
+    def log(self):
+        if not _SHOULD_LOG_STACK:
+            return
+        print('\nCALL STACK:')
+        for ar in self._records[::-1]:  # Reversed to show top of stack first
+            print(ar)
+            print('---')
+
 
 class ActivationRecord:
     def __init__(self, name, type, nesting_level):
@@ -1164,6 +1214,17 @@ class ActivationRecord:
     def get(self, key):
         return self.members.get(key)
 
+    def __str__(self):
+        lines = [
+            f'AR {self.type.name} {self.name} level {self.nesting_level}',
+            '=' * 40,
+        ]
+        for k, v in sorted(self.members.items()):
+            lines.append(f'{k}: {v}')
+        return '\n'.join(lines)
+
+    __repr__ = __str__
+
 
 class Interpreter(NodeVisitor):
     def __init__(self, tree):
@@ -1177,12 +1238,18 @@ class Interpreter(NodeVisitor):
             nesting_level=1,
         )
         self.call_stack.push(ar)
+        if _SHOULD_LOG_STACK:
+            print('ENTER PROGRAM')
+        self.call_stack.log()
 
         for function in node.functions:
             ar.members[function.name] = function  # Use ar.members instead of ar[key]
 
         self.visit(node.main_block)
 
+        if _SHOULD_LOG_STACK:
+            print('LEAVE PROGRAM')
+        self.call_stack.log()
         self.call_stack.pop()
 
     def visit_Block(self, node):
@@ -1245,6 +1312,9 @@ class Interpreter(NodeVisitor):
             ar.members[param.var_node.value] = self.visit(arg)
 
         self.call_stack.push(ar)
+        if _SHOULD_LOG_STACK:
+            print(f'ENTER FUNCTION {node.name}')
+        self.call_stack.log()
 
         try:
             self.visit(func_decl.body)
@@ -1252,6 +1322,9 @@ class Interpreter(NodeVisitor):
         except ReturnException as e:
             result = e.value
 
+        if _SHOULD_LOG_STACK:
+            print(f'LEAVE FUNCTION {node.name} return {result}')
+        self.call_stack.log()
         self.call_stack.pop()
         if _SHOULD_LOG_DEBUG:
             print(f"Interpreter: Function {node.name} returned {result}")
